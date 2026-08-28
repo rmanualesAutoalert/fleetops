@@ -1,0 +1,50 @@
+name: Pull request template
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate PR description
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required sections and self-review
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_headings=(
+            "## What this PR does"
+            "## Day-card acceptance criteria"
+            "## Self-review (required - AI-assisted or not)"
+            "## Evidence"
+          )
+
+          for heading in "${required_headings[@]}"; do
+            if ! grep -Fq -- "$heading" <<< "$PR_BODY"; then
+              echo "::error::Missing required PR section: $heading"
+              exit 1
+            fi
+          done
+
+          if grep -Eq -- '^[[:space:]]*-[[:space:]]*\[[[:space:]]\]' <<< "$PR_BODY"; then
+            echo "::error::Complete every self-review checkbox before merging."
+            exit 1
+          fi
+
+          checked_count="$(grep -Eic -- '^[[:space:]]*-[[:space:]]*\[[xX]\]' <<< "$PR_BODY" || true)"
+          if [[ "$checked_count" -lt 4 ]]; then
+            echo "::error::The four required self-review items must remain present and checked."
+            exit 1
+          fi
+
+          if grep -Eq -- '<!--[[:space:]]*(2-4 bullets|Paste the criteria from the day card|Green test run)' <<< "$PR_BODY"; then
+            echo "::error::Replace all template prompts with PR-specific information."
+            exit 1
+          fi
