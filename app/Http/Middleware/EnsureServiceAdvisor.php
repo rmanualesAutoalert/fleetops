@@ -2,25 +2,24 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\UserRole;
 use Closure;
-use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class HandleAppearance
+class EnsureServiceAdvisor
 {
-    public function __construct(
-        private readonly ViewFactory $view,
-    ) {}
-
     /**
      * Handle an incoming request.
      *
-     * @param  Closure(Request): (Response)  $next
+     * @param  Closure(Request): Response  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $this->view->share('appearance', $request->cookie('appearance') ?? 'system');
+        abort_unless(
+            $request->user()?->role === UserRole::ServiceAdvisor,
+            Response::HTTP_FORBIDDEN,
+        );
 
         return $next($request);
     }
