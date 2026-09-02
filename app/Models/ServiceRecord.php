@@ -22,21 +22,25 @@ class ServiceRecord extends Model
         ];
     }
 
+    /** @return BelongsTo<Appointment, $this> */
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);
     }
 
+    /** @return BelongsTo<Branch, $this> */
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
+    /** @return BelongsTo<Advisor, $this> */
     public function advisor(): BelongsTo
     {
         return $this->belongsTo(Advisor::class);
     }
 
+    /** @return BelongsTo<Vehicle, $this> */
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
