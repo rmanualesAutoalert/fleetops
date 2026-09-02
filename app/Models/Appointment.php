@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['branch_id', 'advisor_id', 'customer_id', 'vehicle_id', 'status', 'bay', 'scheduled_at'])]
@@ -20,28 +21,39 @@ class Appointment extends Model
         return ['scheduled_at' => 'datetime'];
     }
 
+    /** @return BelongsTo<Branch, $this> */
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
     }
 
+    /** @return BelongsTo<Advisor, $this> */
     public function advisor(): BelongsTo
     {
         return $this->belongsTo(Advisor::class);
     }
 
+    /** @return BelongsTo<Customer, $this> */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
+    /** @return BelongsTo<Vehicle, $this> */
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
     }
 
+    /** @return HasOne<ServiceRecord, $this> */
     public function serviceRecord(): HasOne
     {
         return $this->hasOne(ServiceRecord::class);
+    }
+
+    /** @return HasMany<ServiceRecord, $this> */
+    public function serviceRecords(): HasMany
+    {
+        return $this->hasMany(ServiceRecord::class);
     }
 }

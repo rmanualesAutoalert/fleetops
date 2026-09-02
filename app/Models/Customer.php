@@ -14,11 +14,13 @@ class Customer extends Model
     /** @use HasFactory<CustomerFactory> */
     use HasFactory;
 
+    /** @return HasMany<Vehicle, $this> */
     public function vehicles(): HasMany
     {
         return $this->hasMany(Vehicle::class);
     }
 
+    /** @return HasMany<Appointment, $this> */
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
