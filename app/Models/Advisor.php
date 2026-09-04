@@ -15,6 +15,12 @@ class Advisor extends Model
     /** @use HasFactory<AdvisorFactory> */
     use HasFactory;
 
+    /** @return BelongsTo<User, $this> */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     /** @return BelongsTo<Branch, $this> */
     public function branch(): BelongsTo
     {
