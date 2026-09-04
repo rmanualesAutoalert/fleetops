@@ -9,15 +9,15 @@ use App\Models\Customer;
 use App\Models\ServiceRecord;
 use App\Models\Vehicle;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
+use Tests\Concerns\RefreshInMemoryDatabase;
 use Tests\TestCase;
 
 class ServiceRecordQueryTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshInMemoryDatabase;
 
     public function test_index_uses_at_most_five_queries(): void
     {

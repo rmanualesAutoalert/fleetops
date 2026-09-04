@@ -4,12 +4,12 @@ namespace Tests\Feature;
 
 use App\Enums\UserRole;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\RefreshInMemoryDatabase;
 use Tests\TestCase;
 
 class ServiceAdvisorReportTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshInMemoryDatabase;
 
     public function test_guest_is_redirected_to_login(): void
     {

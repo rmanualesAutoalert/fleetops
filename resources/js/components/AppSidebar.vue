@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -24,6 +25,20 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
 ];
+
+const page = usePage();
+const visibleNavItems = computed(() =>
+    page.props.auth.user.role === 'service_advisor'
+        ? [
+              ...mainNavItems,
+              {
+                  title: 'Appointments',
+                  href: '/appointments',
+                  icon: LayoutGrid,
+              },
+          ]
+        : mainNavItems,
+);
 
 const footerNavItems: NavItem[] = [
     {
@@ -54,7 +69,7 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="visibleNavItems" />
         </SidebarContent>
 
         <SidebarFooter>

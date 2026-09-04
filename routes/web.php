@@ -19,3 +19,7 @@ Route::middleware(['auth', 'verified', EnsureServiceAdvisor::class])
     });
 
 require __DIR__.'/settings.php';
+
+Route::middleware(['auth', 'verified', EnsureServiceAdvisor::class])->group(function () {
+    Route::inertia('appointments', 'appointments/Index')->name('appointments.index');
+});

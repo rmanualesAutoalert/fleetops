@@ -9,14 +9,14 @@ use App\Models\Customer;
 use App\Models\ServiceRecord;
 use App\Models\Vehicle;
 use Illuminate\Database\Events\QueryExecuted;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
+use Tests\Concerns\RefreshInMemoryDatabase;
 use Tests\TestCase;
 
 class ServiceRecordQueryMeasurementTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshInMemoryDatabase;
 
     public function test_measure_index_query_count(): void
     {
