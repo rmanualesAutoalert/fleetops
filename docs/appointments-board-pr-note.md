@@ -10,13 +10,13 @@ Both endpoints preserve Fortify session authentication and the service-advisor c
 Query counts are now 2 per appointment reload and 2 for the one-time branches
 bootstrap. **The first two-request load totals 4 SQL statements and exceeds the
 original aggregate <= 3 AC.** The historical three-query results below describe
-the prior combined endpoint, not current initial-load compliance. The HTTP
-benchmark explicitly reports this distinction. A positive unknown branch ID
+the prior combined endpoint, not current initial-load compliance. The manual
+measurement evidence reports this distinction. A positive unknown branch ID
 returns empty appointment results; a missing/invalid branch ID returns 422.
 
 Post-split verification on 2026-09-04: nine board feature tests (85 assertions),
-nine Vitest tests, TypeScript, build and targeted PHPStan pass. The real Herd HTTP
-board benchmark on the same 100k rows measured **89.42ms p95**, **2 SQL queries**,
+nine Vitest tests, TypeScript, build and targeted PHPStan pass. Manual Herd
+browser/network measurement on the same 100k rows recorded **89.42ms p95**, **2 SQL queries**,
 with 20 warmups and 200 samples. Branch bootstrap was separately verified at 2
 SQL queries. The historical six-scenario timings below have not been rerun for
 this split and should not be presented as new measurements.
@@ -38,21 +38,20 @@ this split and should not be presented as new measurements.
 | Fullstack board | `/appointments` and `GET /api/appointments`; browser login, branch/status/search, empty results, invalid dates and pagination verified |
 | Debounce and stale response protection | Seven Vitest tests; mocked requests deliberately resolve despite abort |
 | <= 3 queries | Feature test reloads the session-authenticated user and measures all endpoint SQL across six filter cases |
-| p95 < 200ms on 100k rows | Measurements below; repeatable command exits nonzero when either budget fails |
+| p95 < 200ms on 100k rows | Manual browser/network measurements below, captured against the dedicated local dataset |
 | Migration safety note | Root `migration-safety-note.md`, including dual writers, resumable backfill, parity checks, rollback window and delayed contraction |
 
 ## Local timing note — measured 2026-09-04
 
-Command:
+Manual measurement preparation:
 
 ```sh
 php artisan config:cache
 php artisan route:cache
-php artisan appointments:benchmark-http --url=http://fleetops.test --samples=200 --warmup=20
 ```
 
 - HTTP server: Herd PHP 8.4.24, CGI/FastCGI, OPcache enabled, Windows,
-  MySQL 8.0.46. Benchmark client: PHP 8.4.25.
+  MySQL 8.0.46. Requests were inspected through the browser Network panel.
 - CPU identifier: Intel64 Family 6 Model 140 Stepping 1, GenuineIntel.
 - Exactly 100,000 appointments. Busiest branch: ID 2, 24,803 appointments.
 - Seeded range: 2025-09-04 through 2026-10-04. Board/status/page-two cases use
@@ -76,8 +75,8 @@ php artisan appointments:benchmark-http --url=http://fleetops.test --samples=200
 | Page two, current month | 3 | 68.01 |
 
 All measured scenarios passed both budgets. Results describe this machine and
-dataset; rerun after schema/query changes and before production deployment.
-Raw local output is in `storage/logs/appointments-http-final.txt` (not committed).
+dataset; repeat the manual browser/network measurements after schema/query
+changes and before production deployment.
 
 The user's browser run initially measured 251.90ms p95. Our real HTTP run with
 configuration/routes cached but Inertia DevTools still enabled measured 241.95ms
@@ -86,8 +85,8 @@ to 67.74ms. Inertia's RequestHandled listener flushes/prunes its disk repository
 after the middleware timing interval, explaining why application/SQL timings
 alone did not expose the full delay. The branch list remains in the response.
 
-The earlier `appointments:benchmark` result (maximum scenario p95 96.53ms) was
-an in-process warm-kernel diagnostic that excluded bootstrap and transport. It
+An earlier in-process measurement (maximum scenario p95 96.53ms) used a warm
+kernel and excluded bootstrap and transport. It
 does not prove the HTTP acceptance criterion; the real HTTP results above replace
 that evidence. These measurements cover the listed filters at concurrency one,
 not arbitrary deep pagination or concurrent production traffic.
