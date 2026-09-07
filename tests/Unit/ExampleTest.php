@@ -11,6 +11,6 @@ class ExampleTest extends TestCase
 
     public function test_that_true_is_true()
     {
-        $this->assertTrue(false, 'Intentional CI failure for branch-protection verification.');
+        $this->assertTrue(true);
     }
 }
