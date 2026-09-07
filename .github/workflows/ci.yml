@@ -56,6 +56,9 @@ jobs:
           cp .env.example .env
           php artisan key:generate --ansi
 
+      - name: Pint
+        run: vendor/bin/pint --test --parallel
+
       - name: Larastan
         run: vendor/bin/phpstan analyse --no-progress
 
