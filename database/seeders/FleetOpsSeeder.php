@@ -34,7 +34,9 @@ class FleetOpsSeeder extends Seeder
     }
 
     /**
-     * @param  Factory<Model>  $factory
+     * @template TModel of Model
+     *
+     * @param  Factory<TModel>  $factory
      */
     private function createInChunks(Factory $factory, int $total): void
     {

@@ -53,7 +53,7 @@ class ServiceRecordController extends Controller
         // copy() matters because Carbon dates are mutable. Without it, modifying the date could also alter $monthStart.
         $nextMonthStart = $monthStart->copy()->addMonth();
 
-        //correctly handles different month lengths and avoids accidentally including the same month from prior years.
+        // correctly handles different month lengths and avoids accidentally including the same month from prior years.
         $currentMonth = fn ($query) => $query
             ->where('completed_at', '>=', $monthStart)
             ->where('completed_at', '<', $nextMonthStart);

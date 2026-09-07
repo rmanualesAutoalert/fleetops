@@ -144,27 +144,14 @@ select the development database. Seed the local dataset separately from tests.
 npm run test:unit
 npm run types:check
 php artisan test --filter='AppointmentBoardTest|AdvisorUserTest'
-php artisan config:cache
-php artisan route:cache
-php artisan appointments:benchmark-http --url=http://fleetops.test --samples=200 --warmup=20
 ```
 
-For the HTTP benchmark, set `INERTIA_DEVTOOLS_ENABLED=false` in `.env` before
-caching configuration. It disables Inertia's local request recording to disk;
-authentication, validation and application error reporting remain enabled.
-Use the running Herd site with OPcache enabled. CLI and HTTP must use this
-checkout, application key and session configuration. The command creates and
-then removes its own authenticated session; you do not need browser console code.
-
-The HTTP command sends 20 warmups plus 200 measured requests per scenario:
-220 appointment requests for `--scenario=board`, or 1,320 across all six scenarios,
-plus one branches bootstrap request (221 or 1,321 HTTP requests total). These are deliberate
-sequential benchmark calls, not board polling. It measures the complete HTTP
-response, including PHP/Laravel startup and transport, and exits nonzero if any
-appointment scenario has p95 >= 200ms or more than three SQL queries. It reports
-the four-query initial-load budget separately. Browser rendering and
-the search debounce are outside API latency. A passing run describes these
-specific filters and this machine, not every possible page or concurrent load.
+For manual HTTP timing, set `INERTIA_DEVTOOLS_ENABLED=false` in `.env`, cache
+configuration and routes, and use the authenticated board through the browser
+Network panel against the dedicated 100k-row Herd dataset. Keep the machine,
+dataset, filters and warmup procedure consistent when comparing measurements.
+Record the request URL, response status, duration and profiling headers with the
+evidence. Browser timing is environment-dependent and is not an automated test.
 
 Local opt-in `X-Board-Profile: 1` requests return `Server-Timing` diagnostics and
 `X-Board-Query-Count`. SQL time is a subset of application time; the diagnostic
@@ -172,27 +159,12 @@ intervals exclude work after middleware returns, such as RequestHandled event
 listeners. Use the full client HTTP measurement as the acceptance result.
 Profiling headers are absent outside the local environment.
 
-After benchmarking, run `php artisan config:clear` and `php artisan route:clear`
+After measuring, run `php artisan config:clear` and `php artisan route:clear`
 before normal development or tests, so cached local database settings cannot
 override the test environment. Recreate caches before comparing timings. Set
 `INERTIA_DEVTOOLS_ENABLED=true` and clear configuration when you need its UI.
 
-The older `php artisan appointments:benchmark --samples=200 --warmup=20`
-command is a diagnostic in-process benchmark, not proof of HTTP latency. It is
-local-only, refuses fewer than 100k appointments, uses the
-busiest branch and full seeded date range, and runs six separate scenarios. It
-uses a real session and reloads the authenticated user each time. Each measured
-sample runs the HTTP kernel, middleware, SQL, JSON and termination. It counts
-all SQL during that interval and exits nonzero on any scenario with more than
-three queries or p95 >= 200ms. Nearest-rank p95 is calculated per scenario.
-
-It is an in-process warm-kernel benchmark: PHP startup, network transport and
-browser rendering are excluded. It is not an end-to-end browser latency claim.
-The optional `--session=file` explicitly overrides the session driver for that
-command only; it is printed in the evidence. Run without an override to verify
-the configured driver. Database sessions are deliberately not hidden from counting.
-
-Capture the command output under the PR template's Evidence section; see
+Capture screenshots and recorded values under the PR template's Evidence section; see
 `docs/appointments-board-pr-note.md` for this implementation's measurements.
 CI runs deterministic correctness/query-count tests; local wall-clock timing is
 kept out of CI to avoid hardware-dependent flaky tests.
