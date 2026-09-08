@@ -31,4 +31,10 @@ class Branch extends Model
     {
         return $this->hasMany(ServiceRecord::class);
     }
+
+    /** @return HasMany<DailyBranchSummary, $this> */
+    public function dailySummaries(): HasMany
+    {
+        return $this->hasMany(DailyBranchSummary::class);
+    }
 }

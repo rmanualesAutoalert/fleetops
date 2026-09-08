@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ServiceRecordIndexRequest;
 use App\Models\Advisor;
 use App\Models\Appointment;
 use App\Models\ServiceRecord;
@@ -9,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 
 class ServiceRecordController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(ServiceRecordIndexRequest $request): JsonResponse
     {
         $records = ServiceRecord::query()
             ->select([
@@ -26,10 +27,11 @@ class ServiceRecordController extends Controller
                 'appointment:id,advisor_id',
                 'appointment.advisor:id,name',
             ])
-            ->where('branch_id', request('branch_id'))
+            ->where('branch_id', $request->integer('branch_id'))
             ->orderByDesc('completed_at')
-            ->limit(50)
-            ->get();
+            ->orderByDesc('id')
+            ->cursorPaginate(50)
+            ->withQueryString();
 
         $rows = [];
         foreach ($records as $record) {
@@ -44,7 +46,14 @@ class ServiceRecordController extends Controller
             ];
         }
 
-        return response()->json($rows);
+        return response()->json([
+            'data' => $rows,
+            'meta' => [
+                'next_cursor' => $records->nextCursor()?->encode(),
+                'previous_cursor' => $records->previousCursor()?->encode(),
+                'per_page' => $records->perPage(),
+            ],
+        ]);
     }
 
     public function advisorWorkload(): JsonResponse
