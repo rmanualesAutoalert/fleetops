@@ -29,7 +29,7 @@ class ServiceRecordQueryTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonCount(10)
+            ->assertJsonCount(10, 'data')
             ->assertJsonFragment([
                 'service_type' => 'Service 0',
                 'plate' => 'TEST-0000',
@@ -38,6 +38,41 @@ class ServiceRecordQueryTest extends TestCase
             ]);
 
         $this->assertQueryCountAtMost(5, $queries);
+    }
+
+    public function test_index_cursor_is_stable_with_tied_timestamps_and_does_not_repeat_rows(): void
+    {
+        [$branch] = $this->createRecords(60);
+        ServiceRecord::query()->where('branch_id', $branch->id)->update([
+            'completed_at' => '2026-09-08 12:00:00',
+        ]);
+
+        $first = $this->getJson("/api/service-records?branch_id={$branch->id}")
+            ->assertOk()
+            ->assertJsonCount(50, 'data')
+            ->assertJsonPath('meta.per_page', 50);
+        $cursor = $first->json('meta.next_cursor');
+        $firstIds = collect($first->json('data'))->pluck('id');
+
+        $second = $this->getJson('/api/service-records?'.http_build_query([
+            'branch_id' => $branch->id,
+            'cursor' => $cursor,
+        ]))->assertOk()
+            ->assertJsonCount(10, 'data')
+            ->assertJsonPath('meta.next_cursor', null);
+        $secondIds = collect($second->json('data'))->pluck('id');
+
+        $this->assertSame([], $firstIds->intersect($secondIds)->values()->all());
+        $this->assertSame(
+            ServiceRecord::query()->where('branch_id', $branch->id)->orderByDesc('id')->pluck('id')->all(),
+            $firstIds->concat($secondIds)->all(),
+        );
+    }
+
+    public function test_index_rejects_missing_branch_and_malformed_cursors(): void
+    {
+        $this->getJson('/api/service-records')->assertUnprocessable();
+        $this->getJson('/api/service-records?branch_id=1&cursor=not-a-cursor')->assertUnprocessable();
     }
 
     public function test_advisor_workload_uses_one_query_and_current_month_aggregates(): void
